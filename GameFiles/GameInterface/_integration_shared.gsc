@@ -36,6 +36,7 @@ Setup()
     level.eventTypes.joinTeam    = "joined_team";
     level.eventTypes.spawned	 = "spawned_player";
     level.eventTypes.gameEnd     = "game_ended";
+    level.eventTypes.death       = "death";
     
     level.iw4madminIntegrationDefaultPerformance = 200;
     
@@ -70,22 +71,7 @@ OnPlayerConnect()
         
         player thread OnClientFirstSpawn();
         player thread OnClientJoinedTeam();
-        player thread OnClientDisconnect();
-    }
-}
-
-OnClientDisconnect()
-{
-    level endon( level.eventTypes.gameEnd );
-    self endon( "disconnect_logic_end" );
-
-    for ( ;; )
-    {
-        self waittill( level.eventTypes.disconnect );
-        scripts\_integration_base::LogDebug( "client is disconnecting" );
-
-        OnTeamSizeChanged();
-        self notify( "disconnect_logic_end" );
+        player thread OnClientDeath();
     }
 }
 
@@ -108,7 +94,6 @@ OnClientJoinedTeam()
         
         if ( newTeam != level.commonKeys.team1 && newTeam != level.commonKeys.team2 )
         {
-            OnTeamSizeChanged();
             scripts\_integration_base::LogDebug( "not force balancing " + self.name + " because they switched to spec"  );
             continue;
         }
@@ -138,45 +123,35 @@ OnClientFirstSpawn()
     self [[level.overrideMethods[level.commonFunctions.changeTeam]]]( level.commonKeys.teamSpectator );
 }
 
-OnTeamSizeChanged()
+OnClientDeath()
 {
-    if ( level.players.size < 3 )
-    {
-        scripts\_integration_base::LogDebug( "not enough clients to autobalance" );
-        return;
-    }
+    level endon( level.eventTypes.gameEnd );
+    self endon( level.eventTypes.disconnect );
 
-    if ( !IsDefined( GetSmallerTeam( 1 ) ) )
+    for ( ;; )
     {
-        scripts\_integration_base::LogDebug( "teams are not unbalanced enough to auto balance" );
-        return;
-    }
-    
-    toSwap = FindClientToSwap();
-    curentTeam = toSwap [[level.overrideMethods[level.commonFunctions.getClientTeam]]]();
-    otherTeam = level.commonKeys.team1;
+        self waittill( level.eventTypes.death );
 
-    if ( curentTeam == otherTeam ) 
-    {
-        otherTeam = level.commonKeys.team2;
-    }
+        currentTeam = self [[level.overrideMethods[level.commonFunctions.getClientTeam]]]();
 
-    toSwap.wasAutoBalanced = true;
-    
-    if ( !IsDefined( toSwap.autoBalanceCount ) )
-    {
-        toSwap.autoBalanceCount = 1;
-    }
-    else
-    {
-        toSwap.autoBalanceCount++;
-    }
+        if ( currentTeam != level.commonKeys.team1 && currentTeam != level.commonKeys.team2 )
+        {
+            scripts\_integration_base::LogDebug( "not balancing " + self.name + " on death because they switched to spec"  );
+            continue;
+        }
 
-    toSwap [[level.overrideMethods[level.commonFunctions.backupRestoreClientKillStreakData]]]( false );
-    scripts\_integration_base::LogDebug( "swapping " + toSwap.name + " from " + curentTeam + " to " + otherTeam );
-    toSwap [[level.overrideMethods[level.commonFunctions.changeTeam]]]( otherTeam );
-    wait ( 0.1 ); // give the killstreak on team switch clear event time to execute
-    toSwap [[level.overrideMethods[level.commonFunctions.backupRestoreClientKillStreakData]]]( true );
+        properTeam = self GetTeamToJoin();
+        
+        scripts\_integration_base::LogDebug( "death: " + self.name + " currentTeam=" + currentTeam + ", properTeam=" + properTeam );
+        
+        if ( currentTeam != properTeam )
+        {
+            self [[level.overrideMethods[level.commonFunctions.backupRestoreClientKillStreakData]]]( false );
+            self [[level.overrideMethods[level.commonFunctions.changeTeam]]]( properTeam );
+            wait ( 0.1 );
+            self [[level.overrideMethods[level.commonFunctions.backupRestoreClientKillStreakData]]]( true );
+        }
+    }
 }
 
 FindClientToSwap()

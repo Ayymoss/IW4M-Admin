@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -56,7 +57,8 @@ public class RemoteCommandService : IRemoteCommandService
                 : $"{_appConfig.CommandPrefix}{command}",
             Origin = client,
             Owner = server,
-            IsRemote = true
+            IsRemote = true,
+            CorrelationId = Guid.NewGuid()
         };
 
         server.Manager.AddEvent(remoteEvent);

@@ -26,9 +26,4 @@ public static class ScriptPluginExtensions
     {
         return set.Where(stat => clientIds.Contains(stat.ClientId) && stat.ServerId == (long)serverId).ToList();
     }
-
-    public static object GetId(this Server server)
-    {
-        return server.GetIdForServer().GetAwaiter().GetResult();
-    }
 }

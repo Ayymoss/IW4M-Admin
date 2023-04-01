@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using IW4MAdmin.Application.Misc;
 using SharedLibraryCore.Interfaces;
 using System.Linq;
+using IW4MAdmin.Application.Plugin.Script;
 using SharedLibraryCore;
 using SharedLibraryCore.Configuration;
 

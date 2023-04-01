@@ -83,7 +83,6 @@ namespace Data.Helpers
                 _cacheStates[key].Add(id, state);
 
                 _autoRefresh = autoRefresh;
-                
 
                 if (!_autoRefresh || expirationTime == TimeSpan.MaxValue)
                 {
@@ -96,8 +95,8 @@ namespace Data.Helpers
             }
         }
 
-        public async Task<TReturnType> GetCacheItem(string keyName, CancellationToken cancellationToken = default) =>
-            await GetCacheItem(keyName, null, cancellationToken);
+        public Task<TReturnType> GetCacheItem(string keyName, CancellationToken cancellationToken = default) =>
+            GetCacheItem(keyName, null, cancellationToken);
 
         public async Task<TReturnType> GetCacheItem(string keyName, object id = null,
             CancellationToken cancellationToken = default)
@@ -107,7 +106,7 @@ namespace Data.Helpers
                 throw new ArgumentException("No cache found for key {key}", keyName);
             }
 
-            var state = id is null ? _cacheStates[keyName].Values.First() : _cacheStates[keyName][id];
+            var state = id is null ? _cacheStates[keyName].Values.ToList().First() : _cacheStates[keyName][id];
 
             // when auto refresh is off we want to check the expiration and value
             // when auto refresh is on, we want to only check the value, because it'll be refreshed automatically

@@ -1,8 +1,8 @@
-﻿using SharedLibraryCore.Interfaces;
-using System;
+﻿using System;
 using System.Linq;
+using SharedLibraryCore.Interfaces;
 
-namespace IW4MAdmin.Application.Misc
+namespace IW4MAdmin.Application.Plugin.Script
 {
     /// <summary>
     /// implementation of IScriptPluginServiceResolver

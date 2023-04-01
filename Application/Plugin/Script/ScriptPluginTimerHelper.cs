@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using SharedLibraryCore.Interfaces;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace IW4MAdmin.Application.Misc;
+namespace IW4MAdmin.Application.Plugin.Script;
 
 public class ScriptPluginTimerHelper : IScriptPluginTimerHelper
 {

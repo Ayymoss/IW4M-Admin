@@ -103,17 +103,15 @@ namespace IW4MAdmin.Application.Misc
                         await UploadStatus();
                     }
                 }
-
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Could not send heartbeat");
+                    _logger.LogWarning("Could not send heartbeat - {Message}", ex.Message);
                 }
 
                 try
                 {
                     await Task.Delay(Interval, token);
                 }
-
                 catch
                 {
                     break;
@@ -149,7 +147,7 @@ namespace IW4MAdmin.Application.Misc
                                 Map = s.CurrentMap.Name,
                                 MaxClientNum = s.MaxClients,
                                 Id = s.EndPoint,
-                                Port = (short)s.Port,
+                                Port = (short)s.ListenPort,
                                 IPAddress = s.IP
                             }).ToList(),
                 WebfrontUrl = _appConfig.WebfrontUrl
