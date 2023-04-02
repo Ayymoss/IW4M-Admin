@@ -24,9 +24,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Data.Abstractions;
 using Data.Helpers;
-using IW4MAdmin.Plugins.Stats.Helpers;
-using Stats.Client.Abstractions;
-using Stats.Config;
 using WebfrontCore.Controllers.API.Validation;
 using WebfrontCore.Middleware;
 using WebfrontCore.QueryHelpers;
@@ -100,6 +97,8 @@ namespace WebfrontCore
             }
 
             services.AddHttpContextAccessor();
+            services.AddServerSideBlazor();
+            services.AddControllersWithViews();
             
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -122,15 +121,15 @@ namespace WebfrontCore
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider)
         {
-            app.UseStatusCodePages(_context =>
-            {
-                if (_context.HttpContext.Response.StatusCode == (int)HttpStatusCode.NotFound)
-                {
-                    _context.HttpContext.Response.Redirect($"/Home/ResponseStatusCode?statusCode={_context.HttpContext.Response.StatusCode}");
-                }
+            //app.UseStatusCodePages(_context =>
+            //{
+            //    if (_context.HttpContext.Response.StatusCode == (int)HttpStatusCode.NotFound)
+            //    {
+            //        _context.HttpContext.Response.Redirect($"/Home/ResponseStatusCode?statusCode={_context.HttpContext.Response.StatusCode}");
+            //    }
 
-                return Task.CompletedTask;
-            });
+            //    return Task.CompletedTask;
+            //});
 
             if (env.EnvironmentName == "Development")
             {
@@ -159,6 +158,7 @@ namespace WebfrontCore
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapBlazorHub();
             });
         }
     }

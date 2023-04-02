@@ -27,6 +27,8 @@ namespace WebfrontCore.Controllers
             _serverDataViewer = serverDataViewer;
         }
 
+        
+        
         public async Task<IActionResult> Index(Game? game = null, CancellationToken cancellationToken = default)
         {
             ViewBag.Description = Localization["WEBFRONT_DESCRIPTION_HOME"];
@@ -99,5 +101,8 @@ namespace WebfrontCore.Controllers
 
             return View(commands);
         }
+        
+        // ReSharper disable once Mvc.ViewNotResolved
+        public IActionResult Blazor() => View("~/Blazor/_Host.cshtml");
     }
 }
