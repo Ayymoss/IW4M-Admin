@@ -10,22 +10,14 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace IW4MAdmin.Plugins.Mute;
 
-public class MuteManager
+public class MuteManager(
+    ILogger<MuteManager> logger,
+    IDatabaseContextFactory databaseContextFactory,
+    IMetaServiceV2 metaService,
+    ITranslationLookup translationLookup)
 {
-    private readonly IMetaServiceV2 _metaService;
-    private readonly ITranslationLookup _translationLookup;
-    private readonly ILogger _logger;
-    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly ILogger _logger = logger;
     private readonly SemaphoreSlim _onMuteAction = new(1, 1);
-
-    public MuteManager(ILogger<MuteManager> logger, IDatabaseContextFactory databaseContextFactory,
-        IMetaServiceV2 metaService, ITranslationLookup translationLookup)
-    {
-        _logger = logger;
-        _databaseContextFactory = databaseContextFactory;
-        _metaService = metaService;
-        _translationLookup = translationLookup;
-    }
 
     public static bool IsExpiredMute(MuteStateMeta muteStateMeta) =>
         muteStateMeta.Expiration is not null && muteStateMeta.Expiration < DateTime.UtcNow;
@@ -42,7 +34,7 @@ public class MuteManager
             var muteState = await ReadPersistentDataV1(client);
             clientMuteMeta = new MuteStateMeta
             {
-                Reason = muteState is null ? string.Empty : _translationLookup["PLUGINS_MUTE_MIGRATED"],
+                Reason = muteState is null ? string.Empty : translationLookup["PLUGINS_MUTE_MIGRATED"],
                 Expiration = muteState switch
                 {
                     null => DateTime.UtcNow,
@@ -149,7 +141,7 @@ public class MuteManager
 
     private async Task ExpireMutePenalties(EFClient client)
     {
-        await using var context = _databaseContextFactory.CreateContext();
+        await using var context = databaseContextFactory.CreateContext();
         var mutePenalties = await context.Penalties
             .Where(penalty => penalty.OffenderId == client.ClientId)
             .Where(penalty => penalty.Type == EFPenalty.PenaltyType.Mute || penalty.Type == EFPenalty.PenaltyType.TempMute)
@@ -184,7 +176,7 @@ public class MuteManager
     }
 
     private async Task<MuteState?> ReadPersistentDataV1(EFClient client) => TryParse<MuteState>(
-        (await _metaService.GetPersistentMeta(Plugin.MuteKey, client.ClientId))?.Value, out var muteState)
+        (await metaService.GetPersistentMeta(Plugin.MuteKey, client.ClientId))?.Value, out var muteState)
         ? muteState
         : null;
 
@@ -195,7 +187,7 @@ public class MuteManager
         if (clientMuteMeta is not null) return clientMuteMeta;
 
         // Get meta from database and store in client if exists
-        clientMuteMeta = await _metaService.GetPersistentMetaValue<MuteStateMeta>(Plugin.MuteKey, client.ClientId);
+        clientMuteMeta = await metaService.GetPersistentMetaValue<MuteStateMeta>(Plugin.MuteKey, client.ClientId);
         if (clientMuteMeta is not null) client.SetAdditionalProperty(Plugin.MuteKey, clientMuteMeta);
 
         return clientMuteMeta;
@@ -204,6 +196,6 @@ public class MuteManager
     private async Task WritePersistentData(EFClient client, MuteStateMeta clientMuteMeta)
     {
         client.SetAdditionalProperty(Plugin.MuteKey, clientMuteMeta);
-        await _metaService.SetPersistentMetaValue(Plugin.MuteKey, clientMuteMeta, client.ClientId);
+        await metaService.SetPersistentMetaValue(Plugin.MuteKey, clientMuteMeta, client.ClientId);
     }
 }

@@ -7,10 +7,9 @@ using SharedLibraryCore.Interfaces;
 
 namespace IW4MAdmin.Plugins.Mute.Commands;
 
-public class TempMuteCommand : Command
+public partial class TempMuteCommand : Command
 {
     private readonly MuteManager _muteManager;
-    private const string TempBanRegex = @"([0-9]+\w+)\ (.+)";
 
     public TempMuteCommand(CommandConfiguration config, ITranslationLookup translationLookup, MuteManager muteManager) : base(config,
         translationLookup)
@@ -22,8 +21,8 @@ public class TempMuteCommand : Command
         Permission = EFClient.Permission.Moderator;
         RequiresTarget = true;
         SupportedGames = Plugin.SupportedGames;
-        Arguments = new[]
-        {
+        Arguments =
+        [
             new CommandArgument
             {
                 Name = translationLookup["COMMANDS_ARGS_PLAYER"],
@@ -39,7 +38,7 @@ public class TempMuteCommand : Command
                 Name = translationLookup["COMMANDS_ARGS_REASON"],
                 Required = true
             }
-        };
+        ];
     }
 
     public override async Task ExecuteAsync(GameEvent gameEvent)
@@ -49,8 +48,8 @@ public class TempMuteCommand : Command
             gameEvent.Origin.Tell(_translationLookup["COMMANDS_DENY_SELF_TARGET"]);
             return;
         }
-        
-        var match = Regex.Match(gameEvent.Data, TempBanRegex);
+
+        var match = TempBanRegex().Match(gameEvent.Data);
         if (match.Success)
         {
             var expiration = DateTime.UtcNow + match.Groups[1].ToString().ParseTimespan();
@@ -72,4 +71,7 @@ public class TempMuteCommand : Command
 
         gameEvent.Origin.Tell(_translationLookup["PLUGINS_MUTE_COMMANDS_TEMPMUTE_BAD_FORMAT"]);
     }
+
+    [GeneratedRegex(@"([0-9]+\w+)\ (.+)")]
+    private static partial Regex TempBanRegex();
 }

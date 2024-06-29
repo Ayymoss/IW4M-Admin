@@ -21,14 +21,14 @@ public class MuteInfoCommand : Command
         Permission = EFClient.Permission.Moderator;
         RequiresTarget = true;
         SupportedGames = Plugin.SupportedGames;
-        Arguments = new[]
-        {
+        Arguments =
+        [
             new CommandArgument
             {
                 Name = translationLookup["COMMANDS_ARGS_PLAYER"],
                 Required = true
             }
-        };
+        ];
     }
 
     public override async Task ExecuteAsync(GameEvent gameEvent)
